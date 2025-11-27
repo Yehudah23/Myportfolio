@@ -1,0 +1,187 @@
+import { CommonModule, NgFor, NgIf, NgClass } from '@angular/common';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ApiService } from '../services/api.service';
+
+export interface Project {
+  id?: number;
+  title: string;
+  description: string;
+  image: string;
+  technologies: string[];
+  category: string;
+  featured?: boolean;
+  githubUrl?: string;
+  liveUrl?: string;
+}
+
+@Component({
+  standalone: true,
+  selector: 'app-projects',
+  imports: [FormsModule, CommonModule, NgFor, NgIf, NgClass, ReactiveFormsModule],
+  templateUrl: './projects.html',
+  styleUrls: ['./projects.css']
+})
+export class Projects implements OnInit {
+  private apiService = inject(ApiService);
+  
+  projects: Project[] = [];
+  filteredProjects: Project[] = [];
+  activeFilter: string = 'all';
+  isDarkMode: boolean = false;
+  showAllProjects: boolean = false;
+  loading: boolean = true;
+  
+  ngOnInit(): void {
+    this.addProjectStyles();
+    this.loadProjects();
+    
+    // Check if dark mode is enabled
+    this.isDarkMode = document.body.classList.contains('dark-mode');
+    
+    // Listen for dark mode changes
+    document.addEventListener('darkModeChange', (e: any) => {
+      this.isDarkMode = e.detail.isDarkMode;
+    });
+  }
+  
+  loadProjects(): void {
+    this.loading = true;
+    console.log('Loading projects from API...');
+    this.apiService.getProjects().subscribe({
+      next: (response) => {
+        console.log('Projects loaded successfully:', response);
+        this.projects = response.data || [];
+        this.filterProjects();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading projects:', error);
+        // Fallback to default projects if API fails
+        this.projects = this.getDefaultProjects();
+        this.filterProjects();
+        this.loading = false;
+      }
+    });
+  }
+  
+  getDefaultProjects(): Project[] {
+    return [
+      {
+        id: 1,
+        title: 'E-Commerce Platform',
+        description: 'A full-featured online store with product management, cart functionality, and secure checkout.',
+        image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        technologies: ['Angular', 'TypeScript', 'Node.js', 'MongoDB'],
+        category: 'Web App',
+        featured: true,
+        githubUrl: 'https://github.com/kingjudah/ecommerce',
+        liveUrl: 'https://ecommerce-demo.kingjudah.com'
+      }
+    ];
+  }
+  
+  setFilter(filter: string): void {
+    this.activeFilter = filter;
+    this.filterProjects();
+  }
+  
+  filterProjects(): void {
+    if (this.activeFilter === 'all') {
+      this.filteredProjects = this.showAllProjects 
+        ? [...this.projects]
+        : this.projects.filter(project => project.featured);
+    } else {
+      const filtered = this.projects.filter(project => project.category === this.activeFilter);
+      this.filteredProjects = this.showAllProjects 
+        ? filtered
+        : filtered.filter(project => project.featured);
+    }
+  }
+  
+  getUniqueFilters(): string[] {
+    const categories = this.projects.map(project => project.category);
+    return [...new Set(categories)];
+  }
+  
+  toggleShowAllProjects(): void {
+    this.showAllProjects = !this.showAllProjects;
+    this.filterProjects();
+  }
+
+  // Cap AOS stagger delay to avoid very long cumulative delays when there are many items
+  getAosDelay(index: number): number {
+    return Math.min(index * 100, 300);
+  }
+  
+  private addProjectStyles(): void {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .project-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      
+      .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+      }
+      
+      .project-image-container {
+        position: relative;
+      }
+      
+      .project-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .project-card:hover .project-overlay {
+        opacity: 1;
+      }
+      
+      .btn-group .btn {
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        margin: 0 0.25rem;
+        transition: all 0.3s ease;
+      }
+      
+      .animate__animated {
+        animation-duration: 1s;
+      }
+      
+      .animate__fadeIn {
+        animation-name: fadeIn;
+      }
+      
+      .animate__fadeInUp {
+        animation-name: fadeInUp;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translate3d(0, 40px, 0);
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}

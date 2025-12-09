@@ -12,9 +12,9 @@ export class Hero implements OnInit, AfterViewInit {
   @Input() name: string = 'King Judah';
   @Input() title: string = 'Software Engineer/Full Stack Developer';
   @Input() bio: string = 'Passionate developer with expertise in Angular, Vue.js, Javascript, Laravel and PHP. I create responsive and user-friendly web applications.';
-  @Input() githubUrl: string = 'https://github.com/kingjudah';
-  @Input() linkedinUrl: string = 'https://linkedin.com/in/kingjudah';
-  @Input() email: string = 'contact@kingjudah.com';
+  @Input() githubUrl: string = 'https://github.com/Yehudah23';
+  @Input() linkedinUrl: string = 'https://www.linkedin.com/in/king-judah-oluwakorede-a30259279';
+  @Input() email: string = 'judahk065@gmail.com';
   @Input() imageUrl: string = '/my_picture-removebg-preview.png';
   @Input() skills: string[] = ['Angular', 'Vue.js', 'PHP', 'Laravel', 'Bootstrap', 'Responsive Design', 'Javascript'];
 
